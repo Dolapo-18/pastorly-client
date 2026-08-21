@@ -7,36 +7,41 @@ import {
   AuthPrimaryButton,
   AuthScreen,
 } from "@/components/auth";
+import { routes } from "@/lib/routes";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { authService } from "@/services";
 import { useAuthStore } from "@/store/auth.store";
 
-export default function SignupScreen() {
+export default function GlobalProfileScreen() {
   const { colors } = useAppTheme();
-  const signIn = useAuthStore((state) => state.signIn);
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const session = useAuthStore((state) => state.session);
+  const setSessionUser = useAuthStore((state) => state.setSessionUser);
+  const [name, setName] = useState(session?.user.name ?? "");
+  const [email, setEmail] = useState(session?.user.email ?? "");
+  const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const handleSignup = async () => {
+  const handleSave = async () => {
     setError(null);
-    if (!name.trim() || !email.trim() || !password.trim()) {
-      setError("Fill in all fields to continue.");
+    setSaved(false);
+    if (!name.trim() || !email.trim()) {
+      setError("Name and email are required.");
       return;
     }
 
     setLoading(true);
     try {
-      const session = await authService.signup({
+      const profile = await authService.updateProfile({
         name: name.trim(),
         email: email.trim(),
-        password,
       });
-      await signIn(session);
+      if (session) {
+        setSessionUser({ ...session.user, ...profile });
+      }
+      setSaved(true);
     } catch {
-      setError("Something went wrong. Try again.");
+      setError("Could not save your profile.");
     } finally {
       setLoading(false);
     }
@@ -45,7 +50,7 @@ export default function SignupScreen() {
   return (
     <AuthScreen
       showBack
-      backFallbackHref="/(auth)/welcome"
+      backFallbackHref={routes.pastorHome}
       contentClassName="justify-between"
     >
       <View className="gap-7">
@@ -54,21 +59,20 @@ export default function SignupScreen() {
             className="font-figtree-bold text-[26px] leading-[34px]"
             style={{ color: colors.text }}
           >
-            Create account
+            Your profile
           </Text>
           <Text
             className="font-figtree text-[14px] leading-[20px]"
             style={{ color: colors.textMuted }}
           >
-            One global identity for Pastorly. Next you&apos;ll connect to a
-            church or set up a branch.
+            Global account details shared across every branch you join.
           </Text>
         </View>
 
         <View className="gap-4">
           <AuthField
             label="Full name"
-            placeholder="Pastor John Samuel"
+            placeholder="Your name"
             value={name}
             onChangeText={setName}
             autoComplete="name"
@@ -82,14 +86,6 @@ export default function SignupScreen() {
             autoCapitalize="none"
             autoComplete="email"
           />
-          <AuthField
-            label="Password"
-            placeholder="Create a password"
-            value={password}
-            onChangeText={setPassword}
-            isPassword
-            autoComplete="new-password"
-          />
           {error ? (
             <Text
               accessibilityRole="alert"
@@ -99,28 +95,30 @@ export default function SignupScreen() {
               {error}
             </Text>
           ) : null}
+          {saved ? (
+            <Text
+              className="font-figtree-medium text-[13px]"
+              style={{ color: colors.success }}
+            >
+              Profile saved.
+            </Text>
+          ) : null}
         </View>
       </View>
 
-      <View className="gap-4 pt-6">
+      <View className="gap-3 pt-6">
         <AuthPrimaryButton
-          label={loading ? "Creating account…" : "Continue"}
+          label={loading ? "Saving…" : "Save changes"}
           disabled={loading}
-          onPress={() => void handleSignup()}
+          onPress={() => void handleSave()}
         />
         <Text
-          className="text-center font-figtree text-[14px]"
+          accessibilityRole="link"
+          onPress={() => router.back()}
+          className="text-center font-figtree-medium text-[14px]"
           style={{ color: colors.textMuted }}
         >
-          Already have an account?{" "}
-          <Text
-            accessibilityRole="link"
-            onPress={() => router.push("/(auth)/login")}
-            className="font-figtree-semibold"
-            style={{ color: colors.primary }}
-          >
-            Sign in
-          </Text>
+          Cancel
         </Text>
       </View>
     </AuthScreen>

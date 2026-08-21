@@ -6,47 +6,64 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { DetailRow } from "@/components/common/detail-row";
 import { SecondaryButton } from "@/components/common/secondary-button";
 import { accents, borderRadius } from "@/constants/theme";
-import { pastorProfile } from "@/features/dashboard/pastor-dashboard.data";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { withAlpha } from "@/lib/color";
-import { comingSoon } from "@/lib/routes";
+import { comingSoon, routes } from "@/lib/routes";
 import { useAuthStore } from "@/store/auth.store";
 
+function initialsOf(name: string) {
+  return name
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() ?? "")
+    .join("");
+}
+
 const SETTINGS = [
+  {
+    id: "account",
+    icon: "account-circle-outline" as const,
+    tint: accents.purple,
+    label: "Account profile",
+    href: routes.accountProfile,
+  },
   {
     id: "church",
     icon: "church" as const,
     tint: accents.purple,
     label: "Church Profile",
-    screen: 33,
+    screen: 33 as const,
   },
   {
     id: "notifications",
     icon: "bell-outline" as const,
     tint: accents.coral,
     label: "Notifications",
-    screen: 28,
+    screen: 28 as const,
   },
   {
     id: "members",
     icon: "account-group-outline" as const,
     tint: accents.teal,
     label: "Members",
-    screen: 19,
+    screen: 19 as const,
   },
   {
     id: "help",
     icon: "help-circle-outline" as const,
     tint: accents.amber,
     label: "Help & Support",
-    screen: 40,
+    screen: 40 as const,
   },
-];
+] as const;
 
 export default function PastorProfileScreen() {
   const { colors, isDark } = useAppTheme();
   const insets = useSafeAreaInsets();
+  const session = useAuthStore((state) => state.session);
   const signOut = useAuthStore((state) => state.signOut);
+  const name = session?.user.name ?? "Pastor";
 
   return (
     <View className="flex-1" style={{ backgroundColor: colors.background }}>
@@ -65,7 +82,7 @@ export default function PastorProfileScreen() {
               className="font-figtree-bold text-[24px]"
               style={{ color: colors.primary }}
             >
-              PJ
+              {initialsOf(name)}
             </Text>
           </View>
           <View className="items-center gap-1">
@@ -73,13 +90,13 @@ export default function PastorProfileScreen() {
               className="font-figtree-bold text-[20px]"
               style={{ color: colors.text }}
             >
-              {pastorProfile.name}
+              {name}
             </Text>
             <Text
               className="font-figtree text-[13px]"
               style={{ color: colors.textMuted }}
             >
-              Grace Family Church
+              {session?.user.email}
             </Text>
           </View>
         </View>
@@ -100,12 +117,16 @@ export default function PastorProfileScreen() {
               tint={item.tint}
               label={item.label}
               showDivider={index < SETTINGS.length - 1}
-              onPress={() => router.push(comingSoon(item.label, item.screen))}
+              onPress={() =>
+                "href" in item
+                  ? router.push(item.href)
+                  : router.push(comingSoon(item.label, item.screen))
+              }
             />
           ))}
         </View>
 
-        <SecondaryButton label="Sign Out" onPress={signOut} />
+        <SecondaryButton label="Sign Out" onPress={() => void signOut()} />
       </ScrollView>
     </View>
   );

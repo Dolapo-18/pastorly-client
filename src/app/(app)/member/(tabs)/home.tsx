@@ -1,3 +1,4 @@
+import { router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { ScrollView, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -9,12 +10,15 @@ import {
   greetingForHour,
 } from "@/features/dashboard/pastor-dashboard.data";
 import { useAppTheme } from "@/hooks/use-app-theme";
+import { routes } from "@/lib/routes";
 import { useAuthStore } from "@/store/auth.store";
 
 export default function MemberHomeScreen() {
   const { colors, isDark } = useAppTheme();
   const insets = useSafeAreaInsets();
+  const session = useAuthStore((state) => state.session);
   const signOut = useAuthStore((state) => state.signOut);
+  const name = session?.user.name?.split(" ")[0] ?? "Friend";
 
   return (
     <View className="flex-1" style={{ backgroundColor: colors.background }}>
@@ -38,7 +42,7 @@ export default function MemberHomeScreen() {
             className="font-figtree-bold text-[24px] leading-[30px]"
             style={{ color: colors.text }}
           >
-            Welcome to Grace Family
+            Welcome, {name}
           </Text>
         </View>
 
@@ -55,7 +59,11 @@ export default function MemberHomeScreen() {
           groups and testimonies land here.
         </Text>
 
-        <SecondaryButton label="Sign Out" onPress={signOut} />
+        <SecondaryButton
+          label="Edit profile"
+          onPress={() => router.push(routes.accountProfile)}
+        />
+        <SecondaryButton label="Sign Out" onPress={() => void signOut()} />
       </ScrollView>
     </View>
   );

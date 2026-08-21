@@ -49,9 +49,12 @@ src/
 | `/` | Root | Branded splash |
 | `/welcome` | Public | Landing |
 | `/login` | Public | Sign in (mock auth) |
-| `/signup` | Public | Create account → role select |
-| `/role-select` | Public | Pastor vs member onboarding path |
-| `/dashboard` | Authenticated | Redirects to role home |
+| `/signup` | Public | Create account → onboarding |
+| `/forgot-password` | Public | Password reset (mock) |
+| `/role-select` | Public | Legacy — redirects to sign up |
+| `/onboarding` | Authenticated | Find church or set up branch |
+| `/account/profile` | Authenticated | Global profile edit |
+| `/dashboard` | Authenticated | Redirects by membership state |
 | `/pastor/...` | Authenticated | Pastor tabs and pushed screens |
 | `/member/...` | Authenticated | Member home (placeholder) |
 
@@ -70,12 +73,22 @@ const session = await authService.login({ email, password });
 
 | Service | Status | Location |
 |---------|--------|----------|
-| `authService` | Mock (in-memory session) | [`src/services/auth.service.ts`](src/services/auth.service.ts) |
+| `authService` | Mock (AsyncStorage session) | [`src/services/auth.service.ts`](src/services/auth.service.ts) |
+| `membershipService` | Mock (AsyncStorage memberships) | [`src/services/membership.service.ts`](src/services/membership.service.ts) |
 | `branchService` | Stub (throws until Sprint 2) | [`src/services/branch.service.ts`](src/services/branch.service.ts) |
 
 Legacy feature mocks live under `src/features/**/*.data.ts` and are re-exported from [`src/mocks/index.ts`](src/mocks/index.ts). New fixtures go in `src/mocks/fixtures/`.
 
 **MSW** is not wired yet; Sprint 1 may add it for realistic loading/error states.
+
+### Dev test accounts
+
+| Email | Password | Result after sign-in |
+|-------|----------|----------------------|
+| `pastor@mfm.org` | any | Seeded with MFM Ikeja + Abuja → pastor dashboard |
+| new signup | any | No branches → onboarding hub |
+
+Invite codes in dev: `GRACE-2024` (instant member), `MFM-IKEJA` (pending approval).
 
 ## Types & API contracts
 
@@ -98,8 +111,8 @@ Mockup reference: [`assets/mockups/pastorly-ui-screens.png`](assets/mockups/past
 | Sprint | Focus | Status |
 |--------|-------|--------|
 | **0** | Foundation (this repo structure) | Complete |
-| **1** | Auth & global profile | Next — session persistence, forgot password, membership routing |
-| **2** | Branch context | Planned — `BranchProvider`, MFM seed data |
+| **1** | Auth & global profile | Complete |
+| **2** | Branch context | Next — `BranchProvider`, MFM seed data |
 | **3+** | Switcher, discover, pastor wizard, admin | Planned |
 
 ## Scripts

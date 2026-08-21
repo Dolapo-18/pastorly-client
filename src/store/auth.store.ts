@@ -1,3 +1,7 @@
+import type { Session, User } from "@/types/auth";
+import type { BranchMembership } from "@/types/branch";
+import { authService } from "@/services/auth.service";
+import { membershipService } from "@/services/membership.service";
 import { create } from "zustand";
 
 export type UserRole = "pastor" | "member" | null;
@@ -5,14 +9,85 @@ type AuthStatus = "checking" | "authenticated" | "unauthenticated";
 
 type AuthState = {
   status: AuthStatus;
+  session: Session | null;
   role: UserRole;
-  setAuthenticated: (role: NonNullable<UserRole>) => void;
-  signOut: () => void;
+  hasActiveBranches: boolean;
+  memberships: BranchMembership[];
+  hydrate: () => Promise<void>;
+  signIn: (session: Session) => Promise<void>;
+  signOut: () => Promise<void>;
+  refreshMemberships: () => Promise<void>;
+  setSessionUser: (user: User) => void;
 };
 
-export const useAuthStore = create<AuthState>((set) => ({
-  status: "unauthenticated",
+const PASTOR_ROLES = new Set(["branch_admin", "pastor", "counsellor"]);
+
+export function roleFromMemberships(memberships: BranchMembership[]): UserRole {
+  const active = memberships.filter((item) => item.status === "active");
+  if (!active.length) return null;
+  return active.some((item) => PASTOR_ROLES.has(item.role))
+    ? "pastor"
+    : "member";
+}
+
+export const useAuthStore = create<AuthState>((set, get) => ({
+  status: "checking",
+  session: null,
   role: null,
-  setAuthenticated: (role) => set({ status: "authenticated", role }),
-  signOut: () => set({ status: "unauthenticated", role: null }),
+  hasActiveBranches: false,
+  memberships: [],
+
+  hydrate: async () => {
+    set({ status: "checking" });
+    const session = await authService.getSession();
+    if (!session) {
+      set({
+        status: "unauthenticated",
+        session: null,
+        role: null,
+        hasActiveBranches: false,
+        memberships: [],
+      });
+      return;
+    }
+    set({ session, status: "authenticated" });
+    await get().refreshMemberships();
+  },
+
+  signIn: async (session) => {
+    set({ session, status: "authenticated" });
+    await get().refreshMemberships();
+  },
+
+  signOut: async () => {
+    await authService.logout();
+    set({
+      status: "unauthenticated",
+      session: null,
+      role: null,
+      hasActiveBranches: false,
+      memberships: [],
+    });
+  },
+
+  refreshMemberships: async () => {
+    const memberships = await membershipService.getMyBranches();
+    const active = memberships.filter((item) => item.status === "active");
+    set({
+      memberships,
+      hasActiveBranches: active.length > 0,
+      role: roleFromMemberships(memberships),
+    });
+  },
+
+  setSessionUser: (user) => {
+    const session = get().session;
+    if (!session) return;
+    set({ session: { ...session, user } });
+  },
 }));
+
+/** @deprecated Use signIn + refreshMemberships. Kept for gradual migration. */
+export function useLegacySetAuthenticated() {
+  return useAuthStore.getState().signIn;
+}

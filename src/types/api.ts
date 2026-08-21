@@ -1,4 +1,4 @@
-import type { LoginPayload, Session, SignupPayload, UserProfile } from "@/types/auth";
+import type { LoginPayload, Session, SignupPayload, UserProfile, ForgotPasswordPayload } from "@/types/auth";
 import type { Branch, BranchMembership, CreateBranchSetupPayload } from "@/types/branch";
 
 /** Service method signatures — UI calls these; mocks today, HTTP later. */
@@ -9,6 +9,18 @@ export type AuthService = {
   logout(): Promise<void>;
   getSession(): Promise<Session | null>;
   updateProfile(profile: Partial<UserProfile>): Promise<UserProfile>;
+  requestPasswordReset(payload: ForgotPasswordPayload): Promise<void>;
+};
+
+export type MembershipService = {
+  getMyBranches(): Promise<BranchMembership[]>;
+  joinByInviteCode(code: string): Promise<BranchMembership>;
+  createPastorBranch(input: {
+    churchName: string;
+    city?: string;
+    country?: string;
+  }): Promise<BranchMembership>;
+  clearForUser(userId: string): Promise<void>;
 };
 
 export type BranchService = {

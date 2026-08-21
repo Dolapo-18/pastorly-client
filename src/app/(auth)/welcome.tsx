@@ -70,7 +70,7 @@ export default function WelcomeScreen() {
               <Pressable
                 accessibilityRole="button"
                 accessibilityLabel="Get Started"
-                onPress={() => router.push("/(auth)/role-select")}
+                onPress={() => router.push("/(auth)/signup")}
                 style={styles.buttonShell}
               >
                 {({ pressed }) => (
