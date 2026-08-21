@@ -1,19 +1,21 @@
-import type { LoginPayload, Session, SignupPayload, UserProfile } from "@/types/auth";
+import type {
+  ForgotPasswordPayload,
+  LoginPayload,
+  Session,
+  SignupPayload,
+  UserProfile,
+} from "@/types/auth";
 import type { AuthService } from "@/types/api";
-
-const SESSION_KEY = "pastorly.mock.session";
-
-/** In-memory session until Sprint 1 adds AsyncStorage persistence. */
-let memorySession: Session | null = null;
+import { appStorage, storageKeys } from "@/lib/storage";
 
 function createMockSession(email: string, name: string): Session {
   const now = new Date().toISOString();
   return {
     token: `mock_${Date.now()}`,
-    expiresAt: new Date(Date.now() + 86_400_000).toISOString(),
+    expiresAt: new Date(Date.now() + 86_400_000 * 7).toISOString(),
     user: {
-      id: `user_${email.replace(/[^a-z0-9]/gi, "_")}`,
-      email,
+      id: `user_${email.replace(/[^a-z0-9]/gi, "_").toLowerCase()}`,
+      email: email.trim().toLowerCase(),
       name,
       avatarUrl: null,
       createdAt: now,
@@ -21,57 +23,91 @@ function createMockSession(email: string, name: string): Session {
   };
 }
 
-/**
- * Mock auth service — swap the implementation in `src/services/index.ts`
- * for real HTTP when the backend is ready.
- */
+async function readSession(): Promise<Session | null> {
+  const raw = await appStorage.getItem(storageKeys.session);
+  if (!raw) return null;
+  try {
+    const session = JSON.parse(raw) as Session;
+    if (new Date(session.expiresAt).getTime() <= Date.now()) {
+      await appStorage.removeItem(storageKeys.session);
+      return null;
+    }
+    return session;
+  } catch {
+    await appStorage.removeItem(storageKeys.session);
+    return null;
+  }
+}
+
+async function writeSession(session: Session | null) {
+  if (!session) {
+    await appStorage.removeItem(storageKeys.session);
+    return;
+  }
+  await appStorage.setItem(storageKeys.session, JSON.stringify(session));
+}
+
 export const authService: AuthService = {
-  async login({ email }: LoginPayload) {
+  async login({ email, password }: LoginPayload) {
     await delay(300);
-    memorySession = createMockSession(email, email.split("@")[0] ?? "User");
-    return memorySession;
+    if (!email.trim() || !password.trim()) {
+      throw new Error("Invalid credentials");
+    }
+    const session = createMockSession(email, email.split("@")[0] ?? "User");
+    await writeSession(session);
+    return session;
   },
 
-  async signup({ email, name }: SignupPayload) {
+  async signup({ email, name, password }: SignupPayload) {
     await delay(300);
-    memorySession = createMockSession(email, name);
-    return memorySession;
+    if (!email.trim() || !name.trim() || !password.trim()) {
+      throw new Error("Invalid signup payload");
+    }
+    const session = createMockSession(email, name.trim());
+    await writeSession(session);
+    return session;
   },
 
   async logout() {
     await delay(150);
-    memorySession = null;
+    await writeSession(null);
   },
 
   async getSession() {
-    await delay(100);
-    return memorySession;
+    await delay(80);
+    return readSession();
   },
 
   async updateProfile(profile: Partial<UserProfile>) {
     await delay(200);
-    if (!memorySession) {
+    const session = await readSession();
+    if (!session) {
       throw new Error("Not authenticated");
     }
-    memorySession = {
-      ...memorySession,
-      user: { ...memorySession.user, ...profile },
+    const next: Session = {
+      ...session,
+      user: { ...session.user, ...profile },
     };
+    await writeSession(next);
     return {
-      name: memorySession.user.name,
-      email: memorySession.user.email,
-      avatarUrl: memorySession.user.avatarUrl,
+      name: next.user.name,
+      email: next.user.email,
+      avatarUrl: next.user.avatarUrl,
     };
+  },
+
+  async requestPasswordReset({ email }: ForgotPasswordPayload) {
+    await delay(400);
+    if (!email.trim()) {
+      throw new Error("Email is required");
+    }
+    // Mock always succeeds — Sprint 1 UI only.
   },
 };
 
-/** Dev helper — inspect or reset mock session without going through UI. */
 export const authServiceDev = {
-  sessionKey: SESSION_KEY,
-  getMemorySession: () => memorySession,
-  setMemorySession: (session: Session | null) => {
-    memorySession = session;
-  },
+  sessionKey: storageKeys.session,
+  clearSession: () => writeSession(null),
 };
 
 function delay(ms: number) {

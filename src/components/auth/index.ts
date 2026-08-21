@@ -1,3 +1,4 @@
+export { AuthBootstrap } from "./auth-bootstrap";
 export { AuthDivider } from "./auth-divider";
 export { AuthField } from "./auth-field";
 export { AuthPrimaryButton } from "./auth-primary-button";

@@ -18,4 +18,5 @@ export type {
   SetupRequestStatus,
 } from "@/types/branch";
 
-export type { AuthService, BranchService } from "@/types/api";
+export type { AuthService, BranchService, MembershipService } from "@/types/api";
+export type { ForgotPasswordPayload } from "@/types/auth";
