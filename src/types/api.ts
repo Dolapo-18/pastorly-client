@@ -6,7 +6,7 @@ import type {
   SignupPayload,
   UserProfile,
 } from "@/types/auth";
-import type { Branch, BranchMembership, CreateBranchSetupPayload } from "@/types/branch";
+import type { Branch, BranchMembership, BranchSetupRequest, CreateBranchSetupPayload } from "@/types/branch";
 
 /** Service method signatures — UI calls these; mocks today, HTTP later. */
 
@@ -23,11 +23,14 @@ export type AuthService = {
 export type MembershipService = {
   getMyBranches(): Promise<BranchMembership[]>;
   joinByInviteCode(code: string): Promise<BranchMembership>;
+  joinBranch(branchId: string): Promise<BranchMembership>;
+  cancelPending(branchId: string): Promise<BranchMembership>;
   createPastorBranch(input: {
     churchName: string;
     city?: string;
     country?: string;
   }): Promise<BranchMembership>;
+  createBranchAdminMembership(branchId: string): Promise<BranchMembership>;
   leaveBranch(branchId: string): Promise<BranchMembership>;
   clearForUser(userId: string): Promise<void>;
 };
@@ -37,7 +40,10 @@ export type BranchService = {
   getActiveBranchId(): Promise<string | null>;
   setActiveBranch(branchId: string): Promise<void>;
   getBranchBySlug(slug: string): Promise<Branch | null>;
+  searchBranches(query: string, organizationId?: string): Promise<Branch[]>;
   joinBranch(branchId: string): Promise<BranchMembership>;
   leaveBranch(branchId: string): Promise<void>;
   submitBranchSetup(payload: CreateBranchSetupPayload): Promise<{ requestId: string }>;
+  getMySetupRequests(): Promise<BranchSetupRequest[]>;
+  getPendingSetupRequest(): Promise<BranchSetupRequest | null>;
 };

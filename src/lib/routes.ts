@@ -19,7 +19,9 @@ export const routes = {
   dashboard: "/(app)/dashboard",
   onboarding: "/(app)/onboarding",
   onboardingJoin: "/(app)/onboarding/join-church",
+  onboardingDiscover: "/(app)/onboarding/discover",
   onboardingSetup: "/(app)/onboarding/setup-branch",
+  setupBranchPending: "/(app)/onboarding/setup-branch/pending",
   accountProfile: "/(app)/account/profile",
   myBranches: "/(app)/account/branches",
   forgotPassword: "/(auth)/forgot-password",
@@ -37,5 +39,9 @@ export const routes = {
   groupDetails: (id: string): Href => ({
     pathname: "/(app)/pastor/group/[id]",
     params: { id },
+  }),
+  branchDetail: (slug: string): Href => ({
+    pathname: "/(app)/onboarding/branch/[slug]",
+    params: { slug },
   }),
 } as const;

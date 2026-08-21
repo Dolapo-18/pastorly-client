@@ -9,10 +9,14 @@ import {
   AuthPrimaryButton,
   AuthScreen,
 } from "@/components/auth";
+import { SecondaryButton } from "@/components/common/secondary-button";
 import { borderRadius } from "@/constants/theme";
-import { homeForRole } from "@/features/auth";
+import {
+  completeJoinFlow,
+  goToOnboardingAfterPending,
+} from "@/features/branch/join-flow";
 import { useAppTheme } from "@/hooks/use-app-theme";
-import { comingSoon } from "@/lib/routes";
+import { comingSoon, routes } from "@/lib/routes";
 import { membershipService } from "@/services/membership.service";
 import { useAuthStore } from "@/store/auth.store";
 
@@ -37,15 +41,14 @@ export default function JoinChurchScreen() {
       const membership = await membershipService.joinByInviteCode(inviteCode);
       await refreshMemberships();
 
-      if (membership.status === "active") {
-        router.replace(homeForRole("member"));
-        return;
-      }
+      const outcome = await completeJoinFlow(membership, refreshMemberships);
 
-      setInfo(
-        "Your join request was sent. A branch admin will review it shortly.",
-      );
-      setTimeout(() => router.replace("/(app)/onboarding"), 1200);
+      if (outcome === "pending") {
+        setInfo(
+          "Your join request was sent. A branch admin will review it shortly.",
+        );
+        setTimeout(() => goToOnboardingAfterPending(), 1200);
+      }
     } catch (cause) {
       setError(
         cause instanceof Error ? cause.message : "Could not join this branch.",
@@ -109,6 +112,11 @@ export default function JoinChurchScreen() {
           label={loading ? "Joining…" : "Join branch"}
           disabled={loading}
           onPress={() => void handleJoin()}
+        />
+
+        <SecondaryButton
+          label="Browse churches instead"
+          onPress={() => router.push(routes.onboardingDiscover)}
         />
 
         <Pressable

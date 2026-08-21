@@ -1,5 +1,6 @@
 import { useEffect, type ReactNode } from "react";
 
+import { branchService } from "@/services/branch.service";
 import { useAuthStore } from "@/store/auth.store";
 import { useBranchStore } from "@/store/branch.store";
 
@@ -22,6 +23,7 @@ export function BranchProvider({ children }: BranchProviderProps) {
     }
 
     void sync(memberships, session.user.id);
+    void branchService.searchBranches("").catch(() => undefined);
   }, [status, session, memberships, sync, clear]);
 
   return children;

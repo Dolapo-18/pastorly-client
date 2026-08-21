@@ -20,7 +20,7 @@ import {
   type BranchEntry,
 } from "@/lib/branches";
 import { routes } from "@/lib/routes";
-import { branchService } from "@/services";
+import { branchService, membershipService } from "@/services";
 import { useAuthStore } from "@/store/auth.store";
 
 export default function MyBranchesScreen() {
@@ -34,9 +34,10 @@ export default function MyBranchesScreen() {
   );
 
   const [leaveTarget, setLeaveTarget] = useState<BranchEntry | null>(null);
+  const [cancelTarget, setCancelTarget] = useState<BranchEntry | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const [loadingAction, setLoadingAction] = useState<
-    "leave" | "switch" | null
+    "leave" | "switch" | "cancel" | null
   >(null);
   const [switchTargetId, setSwitchTargetId] = useState<string | null>(null);
 
@@ -86,6 +87,26 @@ export default function MyBranchesScreen() {
     }
   };
 
+  const handleCancelPending = async () => {
+    if (!cancelTarget) return;
+
+    setActionError(null);
+    setLoadingAction("cancel");
+    try {
+      await membershipService.cancelPending(cancelTarget.branch.id);
+      await refreshMemberships();
+      setCancelTarget(null);
+    } catch (cause) {
+      setActionError(
+        cause instanceof Error
+          ? cause.message
+          : "Could not cancel this request.",
+      );
+    } finally {
+      setLoadingAction(null);
+    }
+  };
+
   return (
     <>
       <AuthScreen
@@ -128,7 +149,7 @@ export default function MyBranchesScreen() {
                 className="font-figtree text-[13px] leading-[19px]"
                 style={{ color: colors.textMuted }}
               >
-                Join a church with an invite code to get started.
+                Join a church by browsing the catalogue or using an invite code.
               </Text>
             </View>
           ) : (
@@ -234,14 +255,38 @@ export default function MyBranchesScreen() {
                             </Text>
                           </Pressable>
                         </>
+                      ) : isPending ? (
+                        <>
+                          <Text
+                            className="flex-1 font-figtree text-[13px] leading-[19px]"
+                            style={{ color: colors.textMuted }}
+                          >
+                            Waiting for branch approval.
+                          </Text>
+                          <Pressable
+                            accessibilityRole="button"
+                            onPress={() => setCancelTarget({ branch, membership })}
+                            disabled={loadingAction !== null}
+                            className="items-center rounded-full px-4 py-3 active:opacity-80"
+                            style={{
+                              borderColor: colors.border,
+                              borderWidth: 1,
+                            }}
+                          >
+                            <Text
+                              className="font-figtree-semibold text-[14px]"
+                              style={{ color: colors.error }}
+                            >
+                              Cancel
+                            </Text>
+                          </Pressable>
+                        </>
                       ) : (
                         <Text
                           className="font-figtree text-[13px] leading-[19px]"
                           style={{ color: colors.textMuted }}
                         >
-                          {isPending
-                            ? "A branch admin will review your request. You will get access once approved."
-                            : "This membership is no longer active."}
+                          This membership is no longer active.
                         </Text>
                       )}
                     </View>
@@ -264,7 +309,11 @@ export default function MyBranchesScreen() {
 
         <View className="gap-3 pt-6">
           <AuthPrimaryButton
-            label="Join another branch"
+            label="Discover churches"
+            onPress={() => router.push(routes.onboardingDiscover)}
+          />
+          <SecondaryButton
+            label="Join with invite code"
             onPress={() => router.push(routes.onboardingJoin)}
           />
           <SecondaryButton
@@ -273,6 +322,21 @@ export default function MyBranchesScreen() {
           />
         </View>
       </AuthScreen>
+
+      <ConfirmSheet
+        visible={cancelTarget !== null}
+        title="Cancel join request?"
+        message={
+          cancelTarget
+            ? `Withdraw your pending request for ${cancelTarget.branch.name}.`
+            : ""
+        }
+        confirmLabel="Cancel request"
+        destructive
+        loading={loadingAction === "cancel"}
+        onConfirm={() => void handleCancelPending()}
+        onClose={() => setCancelTarget(null)}
+      />
 
       <ConfirmSheet
         visible={leaveTarget !== null}

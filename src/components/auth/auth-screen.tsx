@@ -20,6 +20,8 @@ type AuthScreenProps = {
   showClose?: boolean;
   /** Where the back chevron or dismiss cross goes when there is no history to pop. */
   backFallbackHref?: Href;
+  /** Custom back handler — e.g. wizard step navigation instead of router.back(). */
+  onBackPress?: () => void;
   /**
    * Skips the top safe-area padding. Modal sheets already sit below the status
    * bar, so the root window inset would double the gap.
@@ -35,6 +37,7 @@ export function AuthScreen({
   showBack = false,
   showClose = false,
   backFallbackHref,
+  onBackPress,
   compactTop = false,
 }: AuthScreenProps) {
   const insets = useSafeAreaInsets();
@@ -65,7 +68,7 @@ export function AuthScreen({
         <View className="w-full max-w-[620px] flex-1">
           {showBack ? (
             <View className="mb-3">
-              <BackButton fallbackHref={backFallbackHref} />
+              <BackButton fallbackHref={backFallbackHref} onPress={onBackPress} />
             </View>
           ) : null}
           {showClose ? (

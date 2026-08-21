@@ -8,4 +8,6 @@ export const storageKeys = {
   memberships: "pastorly.memberships",
   passwordResetOtp: "pastorly.passwordResetOtp",
   activeBranch: "pastorly.activeBranch",
+  setupRequests: "pastorly.setupRequests",
+  dynamicBranches: "pastorly.dynamicBranches",
 } as const;

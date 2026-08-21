@@ -14,23 +14,41 @@ import { useAuthStore } from "@/store/auth.store";
 export default function SignupScreen() {
   const { colors } = useAppTheme();
   const signIn = useAuthStore((state) => state.signIn);
-  const [name, setName] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   const handleSignup = async () => {
     setError(null);
-    if (!name.trim() || !email.trim() || !password.trim()) {
+    if (
+      !firstName.trim() ||
+      !lastName.trim() ||
+      !email.trim() ||
+      !password.trim() ||
+      !confirmPassword.trim()
+    ) {
       setError("Fill in all fields to continue.");
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setError("Passwords do not match.");
       return;
     }
 
     setLoading(true);
     try {
+      const name = [firstName, lastName]
+        .map((part) => part.trim())
+        .filter(Boolean)
+        .join(" ");
+
       const session = await authService.signup({
-        name: name.trim(),
+        name,
         email: email.trim(),
         password,
       });
@@ -67,11 +85,18 @@ export default function SignupScreen() {
 
         <View className="gap-4">
           <AuthField
-            label="Full name"
-            placeholder="Pastor John Samuel"
-            value={name}
-            onChangeText={setName}
-            autoComplete="name"
+            label="First name"
+            placeholder="John"
+            value={firstName}
+            onChangeText={setFirstName}
+            autoComplete="given-name"
+          />
+          <AuthField
+            label="Last name"
+            placeholder="Samuel"
+            value={lastName}
+            onChangeText={setLastName}
+            autoComplete="family-name"
           />
           <AuthField
             label="Email"
@@ -87,6 +112,14 @@ export default function SignupScreen() {
             placeholder="Create a password"
             value={password}
             onChangeText={setPassword}
+            isPassword
+            autoComplete="new-password"
+          />
+          <AuthField
+            label="Confirm password"
+            placeholder="Re-enter your password"
+            value={confirmPassword}
+            onChangeText={setConfirmPassword}
             isPassword
             autoComplete="new-password"
           />

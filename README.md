@@ -53,6 +53,10 @@ src/
 | `/forgot-password` | Public | Request OTP → `/forgot-password/reset` (mock OTP: `123456`) |
 | `/role-select` | Public | Legacy — redirects to sign up |
 | `/onboarding` | Authenticated | Find church or set up branch |
+| `/onboarding/discover` | Authenticated | Browse/search branches |
+| `/onboarding/setup-branch` | Authenticated | Pastor branch setup wizard |
+| `/onboarding/setup-branch/pending` | Authenticated | Setup request pending approval |
+| `/onboarding/branch/[slug]` | Authenticated | Branch detail + join |
 | `/account/branches` | Authenticated | My branches — switch, leave, pending badges |
 | `/dashboard` | Authenticated | Redirects by membership state |
 | `/pastor/...` | Authenticated | Pastor tabs and pushed screens |
@@ -106,6 +110,20 @@ Sign in as `pastor@mfm.org` to switch between **MFM Ikeja** and **MFM Abuja**.
 - Leave branch flow with confirmation (blocks sole `branch_admin`)
 - Pending approval badges on onboarding and My branches
 
+### Discover & join (Sprint 4)
+
+- Route: [`/(app)/onboarding/discover`](src/app/(app)/onboarding/discover.tsx) — search/filter catalogue
+- Branch detail: [`/(app)/onboarding/branch/[slug]`](src/app/(app)/onboarding/branch/[slug].tsx)
+- `branchService.joinBranch` + `membershipService.cancelPending`
+- Open branches join instantly; approval-required branches go pending
+
+### Pastor setup wizard (Sprint 5)
+
+- Wizard: [`/(app)/onboarding/setup-branch`](src/app/(app)/onboarding/setup-branch/index.tsx) — network → branch → contact → review
+- Pending screen: [`/(app)/onboarding/setup-branch/pending`](src/app/(app)/onboarding/setup-branch/pending.tsx)
+- `branchService.submitBranchSetup` stores a pending request (no admin access until approved)
+- Dev: **Simulate approval** on the pending screen calls `branchServiceDev.approveSetupRequest`
+
 ## Types & API contracts
 
 Shared shapes for client and future backend:
@@ -130,7 +148,9 @@ Mockup reference: [`assets/mockups/pastorly-ui-screens.png`](assets/mockups/past
 | **1** | Auth & global profile | Complete |
 | **2** | Branch context | Complete — `BranchProvider`, `useActiveBranch`, active branch persistence |
 | **3** | My branches & switcher | Complete — header switcher, leave flow, pending badges |
-| **4+** | Discover, pastor wizard, admin | Planned |
+| **4** | Discover & join | Complete — browse, branch detail, join, cancel pending |
+| **5** | Pastor setup wizard | Complete — 4-step wizard, pending approval, dev approve |
+| **6+** | Platform admin, branch admin shell | Planned |
 
 ## Scripts
 

@@ -1,3 +1,4 @@
+import type { Branch } from "@/types/branch";
 import type { BranchMembership } from "@/types/branch";
 import type { MembershipService } from "@/types/api";
 import { authService } from "@/services/auth.service";
@@ -40,6 +41,39 @@ async function seedDemoIfNeeded(userId: string, email: string) {
   await writeAll(all);
 }
 
+async function createMembershipForBranch(
+  userId: string,
+  branch: Branch,
+  options?: { allowInviteOnly?: boolean },
+): Promise<BranchMembership> {
+  if (branch.joinPolicy === "invite_only" && !options?.allowInviteOnly) {
+    throw new Error("This branch requires an invitation code");
+  }
+
+  const all = await readAll();
+  const existing = all[userId] ?? [];
+  if (
+    existing.some(
+      (item) => item.branchId === branch.id && item.status !== "left",
+    )
+  ) {
+    throw new Error("You already belong to this branch");
+  }
+
+  const membership: BranchMembership = {
+    id: `mem_${Date.now()}`,
+    userId,
+    branchId: branch.id,
+    role: "member",
+    status: branch.joinPolicy === "open" ? "active" : "pending",
+    joinedAt: new Date().toISOString(),
+  };
+
+  all[userId] = [...existing, membership];
+  await writeAll(all);
+  return membership;
+}
+
 export const membershipService: MembershipService = {
   async getMyBranches() {
     const session = await authService.getSession();
@@ -66,24 +100,43 @@ export const membershipService: MembershipService = {
       throw new Error("Branch not found");
     }
 
-    const all = await readAll();
-    const existing = all[userId] ?? [];
-    if (existing.some((item) => item.branchId === branchId && item.status !== "left")) {
-      throw new Error("You already belong to this branch");
+    return createMembershipForBranch(userId, branch, {
+      allowInviteOnly: true,
+    });
+  },
+
+  async joinBranch(branchId: string) {
+    await delay(250);
+    const userId = await currentUserId();
+    if (!userId) throw new Error("Not authenticated");
+
+    const branch = MOCK_BRANCH_CATALOG.find((item) => item.id === branchId);
+    if (!branch) {
+      throw new Error("Branch not found");
     }
 
-    const membership: BranchMembership = {
-      id: `mem_${Date.now()}`,
-      userId,
-      branchId,
-      role: "member",
-      status: branch.joinPolicy === "open" ? "active" : "pending",
-      joinedAt: new Date().toISOString(),
-    };
+    return createMembershipForBranch(userId, branch);
+  },
 
-    all[userId] = [...existing, membership];
+  async cancelPending(branchId: string) {
+    await delay(200);
+    const userId = await currentUserId();
+    if (!userId) throw new Error("Not authenticated");
+
+    const all = await readAll();
+    const list = all[userId] ?? [];
+    const index = list.findIndex(
+      (item) => item.branchId === branchId && item.status === "pending",
+    );
+    if (index === -1) {
+      throw new Error("No pending request for this branch");
+    }
+
+    const updated: BranchMembership = { ...list[index], status: "left" };
+    list[index] = updated;
+    all[userId] = list;
     await writeAll(all);
-    return membership;
+    return updated;
   },
 
   async createPastorBranch({ churchName, city, country }) {
@@ -91,8 +144,29 @@ export const membershipService: MembershipService = {
     const session = await authService.getSession();
     if (!session) throw new Error("Not authenticated");
 
-    const userId = session.user.id;
     const branchId = `branch_${Date.now()}`;
+    void city;
+    void country;
+    void churchName;
+    return this.createBranchAdminMembership(branchId);
+  },
+
+  async createBranchAdminMembership(branchId: string) {
+    await delay(200);
+    const session = await authService.getSession();
+    if (!session) throw new Error("Not authenticated");
+
+    const userId = session.user.id;
+    const all = await readAll();
+    const existing = all[userId] ?? [];
+    if (
+      existing.some(
+        (item) => item.branchId === branchId && item.status !== "left",
+      )
+    ) {
+      throw new Error("You already belong to this branch");
+    }
+
     const membership: BranchMembership = {
       id: `mem_${Date.now()}`,
       userId,
@@ -102,15 +176,8 @@ export const membershipService: MembershipService = {
       joinedAt: new Date().toISOString(),
     };
 
-    const all = await readAll();
-    all[userId] = [...(all[userId] ?? []), membership];
+    all[userId] = [...existing, membership];
     await writeAll(all);
-
-    // Branch metadata is mock-only until Sprint 2 catalogue sync.
-    void city;
-    void country;
-    void churchName;
-
     return membership;
   },
 
