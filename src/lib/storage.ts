@@ -7,4 +7,5 @@ export const storageKeys = {
   session: "pastorly.session",
   memberships: "pastorly.memberships",
   passwordResetOtp: "pastorly.passwordResetOtp",
+  activeBranch: "pastorly.activeBranch",
 } as const;

@@ -33,6 +33,7 @@ export type MembershipService = {
 
 export type BranchService = {
   getMyBranches(): Promise<BranchMembership[]>;
+  getActiveBranchId(): Promise<string | null>;
   setActiveBranch(branchId: string): Promise<void>;
   getBranchBySlug(slug: string): Promise<Branch | null>;
   joinBranch(branchId: string): Promise<BranchMembership>;

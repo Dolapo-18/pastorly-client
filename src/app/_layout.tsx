@@ -10,6 +10,7 @@ import * as SystemUI from "expo-system-ui";
 
 import { SplashPlaceholder } from "@/components/common/splash-placeholder";
 import { AuthBootstrap } from "@/components/auth/auth-bootstrap";
+import { BranchProvider } from "@/components/branch";
 import { useAppFonts } from "@/hooks/use-app-fonts";
 import { useAppTheme } from "@/hooks/use-app-theme";
 
@@ -31,13 +32,15 @@ export default function RootLayout() {
     <SafeAreaProvider>
       <StatusBar style={isDark ? "light" : "dark"} />
       <AuthBootstrap>
-        <Stack
-          screenOptions={{
-            headerShown: false,
-            contentStyle: { backgroundColor: colors.background },
-            animation: "fade",
-          }}
-        />
+        <BranchProvider>
+          <Stack
+            screenOptions={{
+              headerShown: false,
+              contentStyle: { backgroundColor: colors.background },
+              animation: "fade",
+            }}
+          />
+        </BranchProvider>
       </AuthBootstrap>
     </SafeAreaProvider>
   );

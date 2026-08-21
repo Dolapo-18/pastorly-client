@@ -2,6 +2,7 @@ import type { Session, User } from "@/types/auth";
 import type { BranchMembership } from "@/types/branch";
 import { authService } from "@/services/auth.service";
 import { membershipService } from "@/services/membership.service";
+import { useBranchStore } from "@/store/branch.store";
 import { create } from "zustand";
 
 export type UserRole = "pastor" | "member" | null;
@@ -41,6 +42,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     set({ status: "checking" });
     const session = await authService.getSession();
     if (!session) {
+      useBranchStore.getState().clear();
       set({
         status: "unauthenticated",
         session: null,
@@ -61,6 +63,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   signOut: async () => {
     await authService.logout();
+    useBranchStore.getState().clear();
     set({
       status: "unauthenticated",
       session: null,
@@ -71,12 +74,19 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 
   refreshMemberships: async () => {
+    const session = get().session;
     const memberships = await membershipService.getMyBranches();
     const active = memberships.filter((item) => item.status === "active");
+
+    if (session) {
+      await useBranchStore.getState().sync(memberships, session.user.id);
+    }
+
+    const branchRole = useBranchStore.getState().roleAtActiveBranch;
     set({
       memberships,
       hasActiveBranches: active.length > 0,
-      role: roleFromMemberships(memberships),
+      role: branchRole ?? roleFromMemberships(memberships),
     });
   },
 
