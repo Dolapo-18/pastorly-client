@@ -69,15 +69,17 @@ export default function JoinChurchScreen() {
           className="font-figtree text-[13px] leading-[19px]"
           style={{ color: colors.textMuted }}
         >
-          Try <Text style={{ color: colors.text }}>GRACE-2024</Text> or{" "}
-          <Text style={{ color: colors.text }}>MFM-IKEJA</Text> in dev.
+          Try <Text style={{ color: colors.text }}>MFM-ABUJA</Text> for instant
+          join, or <Text style={{ color: colors.text }}>MFM-IKEJA</Text> /{" "}
+          <Text style={{ color: colors.text }}>GRACE-2024</Text> for pending
+          approval.
         </Text>
 
         <AuthDivider label="invitation code" />
 
         <AuthField
           label="Enter Invitation Code"
-          placeholder="e.g. GRACE-2024"
+          placeholder="e.g. MFM-ABUJA"
           value={inviteCode}
           onChangeText={setInviteCode}
           autoCapitalize="characters"

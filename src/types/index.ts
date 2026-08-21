@@ -1,6 +1,8 @@
 export type {
   AuthError,
   LoginPayload,
+  ResetPasswordWithOtpPayload,
+  SendPasswordOtpPayload,
   Session,
   SignupPayload,
   User,
@@ -19,4 +21,3 @@ export type {
 } from "@/types/branch";
 
 export type { AuthService, BranchService, MembershipService } from "@/types/api";
-export type { ForgotPasswordPayload } from "@/types/auth";

@@ -50,7 +50,7 @@ src/
 | `/welcome` | Public | Landing |
 | `/login` | Public | Sign in (mock auth) |
 | `/signup` | Public | Create account → onboarding |
-| `/forgot-password` | Public | Password reset (mock) |
+| `/forgot-password` | Public | Request OTP → `/forgot-password/reset` (mock OTP: `123456`) |
 | `/role-select` | Public | Legacy — redirects to sign up |
 | `/onboarding` | Authenticated | Find church or set up branch |
 | `/account/profile` | Authenticated | Global profile edit |
@@ -75,7 +75,7 @@ const session = await authService.login({ email, password });
 |---------|--------|----------|
 | `authService` | Mock (AsyncStorage session) | [`src/services/auth.service.ts`](src/services/auth.service.ts) |
 | `membershipService` | Mock (AsyncStorage memberships) | [`src/services/membership.service.ts`](src/services/membership.service.ts) |
-| `branchService` | Stub (throws until Sprint 2) | [`src/services/branch.service.ts`](src/services/branch.service.ts) |
+| `branchService` | Mock (catalogue + active branch persistence) | [`src/services/branch.service.ts`](src/services/branch.service.ts) |
 
 Legacy feature mocks live under `src/features/**/*.data.ts` and are re-exported from [`src/mocks/index.ts`](src/mocks/index.ts). New fixtures go in `src/mocks/fixtures/`.
 
@@ -88,7 +88,16 @@ Legacy feature mocks live under `src/features/**/*.data.ts` and are re-exported 
 | `pastor@mfm.org` | any | Seeded with MFM Ikeja + Abuja → pastor dashboard |
 | new signup | any | No branches → onboarding hub |
 
-Invite codes in dev: `GRACE-2024` (instant member), `MFM-IKEJA` (pending approval).
+Invite codes in dev: `MFM-ABUJA` (instant join), `MFM-IKEJA` / `GRACE-2024` (pending approval).
+
+### Branch context (Sprint 2)
+
+- `BranchProvider` in [`src/app/_layout.tsx`](src/app/_layout.tsx) syncs branch state after auth
+- Hooks: [`useActiveBranch()`](src/hooks/use-active-branch.ts), [`useMyBranches()`](src/hooks/use-my-branches.ts)
+- Active branch id persisted under `pastorly.activeBranch` (per user)
+- Minimal switcher on pastor/member home when the user has multiple active branches
+
+Sign in as `pastor@mfm.org` to switch between **MFM Ikeja** and **MFM Abuja**.
 
 ## Types & API contracts
 
@@ -112,8 +121,8 @@ Mockup reference: [`assets/mockups/pastorly-ui-screens.png`](assets/mockups/past
 |--------|-------|--------|
 | **0** | Foundation (this repo structure) | Complete |
 | **1** | Auth & global profile | Complete |
-| **2** | Branch context | Next — `BranchProvider`, MFM seed data |
-| **3+** | Switcher, discover, pastor wizard, admin | Planned |
+| **2** | Branch context | Complete — `BranchProvider`, `useActiveBranch`, active branch persistence |
+| **3+** | Switcher UI, discover, pastor wizard, admin | Planned |
 
 ## Scripts
 

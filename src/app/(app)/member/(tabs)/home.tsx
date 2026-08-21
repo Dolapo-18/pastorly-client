@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { SecondaryButton } from "@/components/common/secondary-button";
 import { ScriptureCard } from "@/components/dashboard/scripture-card";
+import { BranchSwitcher } from "@/components/branch";
 import {
   dailyScripture,
   greetingForHour,
@@ -45,6 +46,8 @@ export default function MemberHomeScreen() {
             Welcome, {name}
           </Text>
         </View>
+
+        <BranchSwitcher />
 
         <ScriptureCard
           verse={dailyScripture.verse}

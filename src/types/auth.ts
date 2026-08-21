@@ -27,8 +27,14 @@ export type SignupPayload = {
   name: string;
 };
 
-export type ForgotPasswordPayload = {
+export type SendPasswordOtpPayload = {
   email: string;
+};
+
+export type ResetPasswordWithOtpPayload = {
+  email: string;
+  otp: string;
+  password: string;
 };
 
 export type AuthError = {
