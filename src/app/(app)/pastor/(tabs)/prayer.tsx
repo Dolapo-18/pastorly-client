@@ -5,6 +5,7 @@ import { useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { AppScreenHeader } from "@/components/branch";
 import { FilterChips } from "@/components/common/filter-chips";
 import { FloatingActionButton } from "@/components/common/floating-action-button";
 import { SecondaryButton } from "@/components/common/secondary-button";
@@ -35,35 +36,25 @@ export default function PrayerHubScreen() {
           paddingBottom: 96,
         }}
       >
-        <View className="flex-row items-start justify-between px-6">
-          <View className="flex-1 gap-1">
-            <Text
-              className="font-figtree-bold text-[26px] leading-[32px]"
-              style={{ color: colors.text }}
+        <AppScreenHeader
+          title="Prayer Hub"
+          subtitle="Manage prayers, groups and sessions."
+          trailing={
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Prayer settings"
+              hitSlop={10}
+              onPress={() => router.push(comingSoon("Prayer Settings", 36))}
+              className="h-9 w-9 items-center justify-center active:opacity-70"
             >
-              Prayer Hub
-            </Text>
-            <Text
-              className="font-figtree text-[14px] leading-[20px]"
-              style={{ color: colors.textMuted }}
-            >
-              Manage prayers, groups and sessions.
-            </Text>
-          </View>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Prayer settings"
-            hitSlop={10}
-            onPress={() => router.push(comingSoon("Prayer Settings", 36))}
-            className="h-9 w-9 items-center justify-center active:opacity-70"
-          >
-            <MaterialCommunityIcons
-              name="cog-outline"
-              size={22}
-              color={colors.textMuted}
-            />
-          </Pressable>
-        </View>
+              <MaterialCommunityIcons
+                name="cog-outline"
+                size={22}
+                color={colors.textMuted}
+              />
+            </Pressable>
+          }
+        />
 
         <View className="pl-6">
           <FilterChips

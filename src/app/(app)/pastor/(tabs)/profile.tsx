@@ -29,6 +29,13 @@ const SETTINGS = [
     href: routes.accountProfile,
   },
   {
+    id: "branches",
+    icon: "source-branch" as const,
+    tint: accents.teal,
+    label: "My branches",
+    href: routes.myBranches,
+  },
+  {
     id: "church",
     icon: "church" as const,
     tint: accents.purple,

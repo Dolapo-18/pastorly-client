@@ -77,9 +77,32 @@ export const branchService: BranchService = {
     throw new Error("branchService.joinBranch — not implemented until Sprint 4");
   },
 
-  async leaveBranch(_branchId: string) {
-    await delay(100);
-    throw new Error("branchService.leaveBranch — not implemented until Sprint 3");
+  async leaveBranch(branchId: string) {
+    await delay(200);
+    const userId = await currentUserId();
+    if (!userId) {
+      throw new Error("Not authenticated");
+    }
+
+    await membershipService.leaveBranch(branchId);
+
+    const map = await readActiveBranchMap();
+    const activeId = map[userId] ?? null;
+    if (activeId !== branchId) {
+      return;
+    }
+
+    const memberships = await membershipService.getMyBranches();
+    const fallback = memberships.find((item) => item.status === "active");
+
+    if (fallback) {
+      map[userId] = fallback.branchId;
+      await writeActiveBranchMap(map);
+      return;
+    }
+
+    delete map[userId];
+    await writeActiveBranchMap(map);
   },
 
   async submitBranchSetup(_payload) {

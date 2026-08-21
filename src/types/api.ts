@@ -28,6 +28,7 @@ export type MembershipService = {
     city?: string;
     country?: string;
   }): Promise<BranchMembership>;
+  leaveBranch(branchId: string): Promise<BranchMembership>;
   clearForUser(userId: string): Promise<void>;
 };
 

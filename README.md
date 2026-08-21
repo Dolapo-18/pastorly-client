@@ -53,7 +53,7 @@ src/
 | `/forgot-password` | Public | Request OTP → `/forgot-password/reset` (mock OTP: `123456`) |
 | `/role-select` | Public | Legacy — redirects to sign up |
 | `/onboarding` | Authenticated | Find church or set up branch |
-| `/account/profile` | Authenticated | Global profile edit |
+| `/account/branches` | Authenticated | My branches — switch, leave, pending badges |
 | `/dashboard` | Authenticated | Redirects by membership state |
 | `/pastor/...` | Authenticated | Pastor tabs and pushed screens |
 | `/member/...` | Authenticated | Member home (placeholder) |
@@ -99,6 +99,13 @@ Invite codes in dev: `MFM-ABUJA` (instant join), `MFM-IKEJA` / `GRACE-2024` (pen
 
 Sign in as `pastor@mfm.org` to switch between **MFM Ikeja** and **MFM Abuja**.
 
+### My branches (Sprint 3)
+
+- Route: [`/(app)/account/branches`](src/app/(app)/account/branches.tsx)
+- Header branch switcher on pastor dashboard and tab screens
+- Leave branch flow with confirmation (blocks sole `branch_admin`)
+- Pending approval badges on onboarding and My branches
+
 ## Types & API contracts
 
 Shared shapes for client and future backend:
@@ -122,7 +129,8 @@ Mockup reference: [`assets/mockups/pastorly-ui-screens.png`](assets/mockups/past
 | **0** | Foundation (this repo structure) | Complete |
 | **1** | Auth & global profile | Complete |
 | **2** | Branch context | Complete — `BranchProvider`, `useActiveBranch`, active branch persistence |
-| **3+** | Switcher UI, discover, pastor wizard, admin | Planned |
+| **3** | My branches & switcher | Complete — header switcher, leave flow, pending badges |
+| **4+** | Discover, pastor wizard, admin | Planned |
 
 ## Scripts
 

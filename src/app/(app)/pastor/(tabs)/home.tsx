@@ -6,7 +6,6 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { DashboardHeader } from "@/components/dashboard/dashboard-header";
 import { ScriptureCard } from "@/components/dashboard/scripture-card";
 import { StatCard } from "@/components/dashboard/stat-card";
-import { BranchSwitcher } from "@/components/branch";
 import {
   dailyScripture,
   greetingForHour,
@@ -46,8 +45,6 @@ export default function PastorHomeScreen() {
             router.push(comingSoon("Notifications", 28))
           }
         />
-
-        <BranchSwitcher />
 
         <Text
           className="font-figtree text-[15px] leading-[22px]"
