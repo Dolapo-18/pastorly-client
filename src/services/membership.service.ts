@@ -114,6 +114,37 @@ export const membershipService: MembershipService = {
     return membership;
   },
 
+  async leaveBranch(branchId: string) {
+    await delay(200);
+    const userId = await currentUserId();
+    if (!userId) throw new Error("Not authenticated");
+
+    const all = await readAll();
+    const list = all[userId] ?? [];
+    const index = list.findIndex(
+      (item) => item.branchId === branchId && item.status !== "left",
+    );
+    if (index === -1) {
+      throw new Error("Membership not found");
+    }
+
+    const membership = list[index];
+    if (membership.role === "branch_admin" && membership.status === "active") {
+      throw new Error(
+        "You are the only branch admin. Assign another admin before leaving.",
+      );
+    }
+    if (membership.status !== "active") {
+      throw new Error("Only active memberships can be left");
+    }
+
+    const updated: BranchMembership = { ...membership, status: "left" };
+    list[index] = updated;
+    all[userId] = list;
+    await writeAll(all);
+    return updated;
+  },
+
   async clearForUser(userId: string) {
     const all = await readAll();
     delete all[userId];

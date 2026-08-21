@@ -21,6 +21,7 @@ export const routes = {
   onboardingJoin: "/(app)/onboarding/join-church",
   onboardingSetup: "/(app)/onboarding/setup-branch",
   accountProfile: "/(app)/account/profile",
+  myBranches: "/(app)/account/branches",
   forgotPassword: "/(auth)/forgot-password",
   resetPassword: (email: string): Href => ({
     pathname: "/(auth)/forgot-password/reset",

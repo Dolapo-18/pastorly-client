@@ -3,9 +3,9 @@ import { StatusBar } from "expo-status-bar";
 import { ScrollView, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { BranchSwitcher } from "@/components/branch";
 import { SecondaryButton } from "@/components/common/secondary-button";
 import { ScriptureCard } from "@/components/dashboard/scripture-card";
-import { BranchSwitcher } from "@/components/branch";
 import {
   dailyScripture,
   greetingForHour,
@@ -32,22 +32,23 @@ export default function MemberHomeScreen() {
           paddingBottom: 32,
         }}
       >
-        <View className="gap-1">
-          <Text
-            className="font-figtree text-[13px]"
-            style={{ color: colors.textMuted }}
-          >
-            {greetingForHour(new Date().getHours())}
-          </Text>
-          <Text
-            className="font-figtree-bold text-[24px] leading-[30px]"
-            style={{ color: colors.text }}
-          >
-            Welcome, {name}
-          </Text>
+        <View className="gap-3">
+          <BranchSwitcher variant="header" />
+          <View className="gap-1">
+            <Text
+              className="font-figtree text-[13px]"
+              style={{ color: colors.textMuted }}
+            >
+              {greetingForHour(new Date().getHours())}
+            </Text>
+            <Text
+              className="font-figtree-bold text-[24px] leading-[30px]"
+              style={{ color: colors.text }}
+            >
+              Welcome, {name}
+            </Text>
+          </View>
         </View>
-
-        <BranchSwitcher />
 
         <ScriptureCard
           verse={dailyScripture.verse}
@@ -62,6 +63,10 @@ export default function MemberHomeScreen() {
           groups and testimonies land here.
         </Text>
 
+        <SecondaryButton
+          label="My branches"
+          onPress={() => router.push(routes.myBranches)}
+        />
         <SecondaryButton
           label="Edit profile"
           onPress={() => router.push(routes.accountProfile)}

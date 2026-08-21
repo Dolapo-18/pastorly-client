@@ -2,6 +2,7 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { Pressable, Text, View } from "react-native";
 
+import { BranchSwitcher } from "@/components/branch";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { withAlpha } from "@/lib/color";
 
@@ -12,6 +13,7 @@ type DashboardHeaderProps = {
   unreadCount?: number;
   onPressAvatar?: () => void;
   onPressNotifications?: () => void;
+  showBranchSwitcher?: boolean;
 };
 
 function initialsOf(name: string) {
@@ -30,11 +32,13 @@ export function DashboardHeader({
   unreadCount = 0,
   onPressAvatar,
   onPressNotifications,
+  showBranchSwitcher = true,
 }: DashboardHeaderProps) {
   const { colors } = useAppTheme();
 
   return (
-    <View className="flex-row items-center gap-3">
+    <View className="gap-3">
+      <View className="flex-row items-center gap-3">
       <Pressable
         accessibilityRole={onPressAvatar ? "button" : undefined}
         accessibilityLabel="Your profile"
@@ -101,6 +105,9 @@ export function DashboardHeader({
           />
         ) : null}
       </Pressable>
+      </View>
+
+      {showBranchSwitcher ? <BranchSwitcher variant="header" /> : null}
     </View>
   );
 }

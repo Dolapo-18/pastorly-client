@@ -3,10 +3,12 @@ import { Pressable, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { RoleCard } from "@/components/auth";
+import { MembershipStatusBadge } from "@/components/branch";
 import { SecondaryButton } from "@/components/common/secondary-button";
 import { Screen } from "@/components/common/screen";
 import { useAppTheme } from "@/hooks/use-app-theme";
-import { homeForRole } from "@/features/auth";
+import { resolveBranch } from "@/lib/branches";
+import { routes } from "@/lib/routes";
 import { useAuthStore } from "@/store/auth.store";
 
 export default function OnboardingScreen() {
@@ -41,27 +43,59 @@ export default function OnboardingScreen() {
 
           {pending.length > 0 ? (
             <View
-              className="gap-2 rounded-2xl px-4 py-4"
+              className="gap-3 rounded-2xl px-4 py-4"
               style={{
                 backgroundColor: colors.surface,
                 borderColor: colors.border,
                 borderWidth: 1,
               }}
             >
-              <Text
-                className="font-figtree-semibold text-[14px]"
-                style={{ color: colors.text }}
-              >
-                Pending approval
-              </Text>
-              <Text
-                className="font-figtree text-[13px] leading-[19px]"
-                style={{ color: colors.textMuted }}
-              >
-                You have {pending.length} branch request
-                {pending.length === 1 ? "" : "s"} awaiting approval. You can
-                join another branch or wait for a pastor to approve you.
-              </Text>
+              <View className="gap-1">
+                <Text
+                  className="font-figtree-semibold text-[14px]"
+                  style={{ color: colors.text }}
+                >
+                  Pending approval
+                </Text>
+                <Text
+                  className="font-figtree text-[13px] leading-[19px]"
+                  style={{ color: colors.textMuted }}
+                >
+                  These branch requests are waiting for a pastor or admin to
+                  approve you.
+                </Text>
+              </View>
+
+              <View className="gap-2">
+                {pending.map((membership) => {
+                  const branch = resolveBranch(membership.branchId);
+                  return (
+                    <View
+                      key={membership.id}
+                      className="flex-row items-center justify-between gap-3 rounded-xl px-3 py-3"
+                      style={{ backgroundColor: colors.background }}
+                    >
+                      <View className="flex-1 gap-0.5">
+                        <Text
+                          className="font-figtree-semibold text-[14px]"
+                          style={{ color: colors.text }}
+                        >
+                          {branch.name}
+                        </Text>
+                        <Text
+                          className="font-figtree text-[12px]"
+                          style={{ color: colors.textMuted }}
+                        >
+                          {[branch.city, branch.country]
+                            .filter(Boolean)
+                            .join(", ") || "Branch request"}
+                        </Text>
+                      </View>
+                      <MembershipStatusBadge status="pending" />
+                    </View>
+                  );
+                })}
+              </View>
             </View>
           ) : null}
 
@@ -84,6 +118,12 @@ export default function OnboardingScreen() {
         </View>
 
         <View className="gap-3">
+          {memberships.length > 0 ? (
+            <SecondaryButton
+              label="View my branches"
+              onPress={() => router.push(routes.myBranches)}
+            />
+          ) : null}
           <SecondaryButton
             label="Edit global profile"
             onPress={() => router.push("/(app)/account/profile")}

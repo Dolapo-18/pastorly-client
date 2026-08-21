@@ -1,39 +1,31 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { router } from "expo-router";
 import { useState } from "react";
 import { Pressable, Text, View } from "react-native";
 
+import {
+  BranchPickerSheet,
+  selectBranchFromPicker,
+} from "@/components/branch/branch-picker-sheet";
 import { useActiveBranch } from "@/hooks/use-active-branch";
 import { useMyBranches } from "@/hooks/use-my-branches";
 import { useAppTheme } from "@/hooks/use-app-theme";
-import { routes } from "@/lib/routes";
 import { useAuthStore } from "@/store/auth.store";
-import { useBranchStore } from "@/store/branch.store";
 
-export function BranchSwitcher() {
+type BranchSwitcherProps = {
+  variant?: "header" | "inline";
+};
+
+export function BranchSwitcher({ variant = "inline" }: BranchSwitcherProps) {
   const { colors } = useAppTheme();
-  const { activeBranch, setActiveBranch } = useActiveBranch();
-  const { myBranches, hasMultiple } = useMyBranches();
+  const { activeBranch, activeBranchId } = useActiveBranch();
+  const { myBranches } = useMyBranches();
+  const pendingCount = useAuthStore(
+    (state) => state.memberships.filter((item) => item.status === "pending").length,
+  );
   const [open, setOpen] = useState(false);
   const [loadingId, setLoadingId] = useState<string | null>(null);
 
   if (!activeBranch) return null;
-
-  if (!hasMultiple) {
-    return (
-      <View
-        className="self-start rounded-full px-4 py-2"
-        style={{ backgroundColor: colors.surface }}
-      >
-        <Text
-          className="font-figtree-semibold text-[13px]"
-          style={{ color: colors.textMuted }}
-        >
-          {activeBranch.name}
-        </Text>
-      </View>
-    );
-  }
 
   const handleSelect = async (branchId: string) => {
     if (branchId === activeBranch.id) {
@@ -43,101 +35,66 @@ export function BranchSwitcher() {
 
     setLoadingId(branchId);
     try {
-      await setActiveBranch(branchId);
-      useAuthStore.setState({
-        role: useBranchStore.getState().roleAtActiveBranch,
-      });
+      await selectBranchFromPicker(branchId, activeBranchId);
       setOpen(false);
-      router.replace(routes.dashboard);
     } finally {
       setLoadingId(null);
     }
   };
 
+  const isHeader = variant === "header";
+
   return (
-    <View className="gap-2">
+    <>
       <Pressable
         accessibilityRole="button"
-        accessibilityState={{ expanded: open }}
-        onPress={() => setOpen((value) => !value)}
-        className="flex-row items-center gap-2 self-start rounded-full px-4 py-2 active:opacity-80"
+        accessibilityLabel={`Current branch ${activeBranch.name}`}
+        onPress={() => setOpen(true)}
+        className={`flex-row items-center gap-2 active:opacity-80 ${
+          isHeader ? "self-start" : "self-start"
+        }`}
         style={{
           backgroundColor: colors.surface,
           borderColor: colors.border,
           borderWidth: 1,
+          borderRadius: 999,
+          paddingHorizontal: isHeader ? 12 : 16,
+          paddingVertical: isHeader ? 8 : 10,
         }}
       >
-        <MaterialCommunityIcons name="church" size={16} color={colors.primary} />
+        <MaterialCommunityIcons
+          name="church"
+          size={isHeader ? 15 : 16}
+          color={colors.primary}
+        />
         <Text
-          className="font-figtree-semibold text-[13px]"
+          className={`font-figtree-semibold ${isHeader ? "text-[12px]" : "text-[13px]"}`}
           style={{ color: colors.text }}
+          numberOfLines={1}
         >
           {activeBranch.name}
         </Text>
         <MaterialCommunityIcons
-          name={open ? "chevron-up" : "chevron-down"}
-          size={18}
+          name="chevron-down"
+          size={isHeader ? 16 : 18}
           color={colors.textMuted}
         />
+        {pendingCount > 0 ? (
+          <View
+            className="ml-0.5 h-2 w-2 rounded-full"
+            style={{ backgroundColor: colors.error }}
+          />
+        ) : null}
       </Pressable>
 
-      {open ? (
-        <View
-          className="gap-1 rounded-2xl p-2"
-          style={{
-            backgroundColor: colors.surface,
-            borderColor: colors.border,
-            borderWidth: 1,
-          }}
-        >
-          {myBranches.map(({ branch }) => {
-            const selected = branch.id === activeBranch.id;
-            return (
-              <Pressable
-                key={branch.id}
-                accessibilityRole="button"
-                accessibilityState={{ selected }}
-                disabled={loadingId !== null}
-                onPress={() => void handleSelect(branch.id)}
-                className="flex-row items-center justify-between rounded-xl px-3 py-3 active:opacity-80"
-                style={{
-                  backgroundColor: selected ? colors.surfaceMuted : "transparent",
-                }}
-              >
-                <View>
-                  <Text
-                    className="font-figtree-semibold text-[14px]"
-                    style={{ color: colors.text }}
-                  >
-                    {branch.name}
-                  </Text>
-                  <Text
-                    className="font-figtree text-[12px]"
-                    style={{ color: colors.textMuted }}
-                  >
-                    {[branch.city, branch.country].filter(Boolean).join(", ") ||
-                      "Branch"}
-                  </Text>
-                </View>
-                {selected ? (
-                  <MaterialCommunityIcons
-                    name="check-circle"
-                    size={18}
-                    color={colors.primary}
-                  />
-                ) : loadingId === branch.id ? (
-                  <Text
-                    className="font-figtree text-[12px]"
-                    style={{ color: colors.textMuted }}
-                  >
-                    …
-                  </Text>
-                ) : null}
-              </Pressable>
-            );
-          })}
-        </View>
-      ) : null}
-    </View>
+      <BranchPickerSheet
+        visible={open}
+        activeBranchId={activeBranchId}
+        branches={myBranches}
+        loadingBranchId={loadingId}
+        onClose={() => setOpen(false)}
+        onSelect={(branchId) => void handleSelect(branchId)}
+      />
+    </>
   );
 }
