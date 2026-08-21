@@ -1,56 +1,118 @@
-# Welcome to your Expo app 👋
+# Pastorly Client
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Mobile app for pastors and church members — prayer groups, pastoral care, and branch-scoped ministry tools. Built with **Expo SDK 56**, **Expo Router**, **NativeWind**, and **TypeScript**.
 
-## Get started
-
-1. Install dependencies
-
-   ```bash
-   npm install
-   ```
-
-2. Start the app
-
-   ```bash
-   npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+## Quick start
 
 ```bash
-npm run reset-project
+npm install
+npx expo start
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+Open in iOS Simulator, Android emulator, or Expo Go. See [Expo docs](https://docs.expo.dev/versions/v56.0.0/) for platform setup.
 
-### Other setup steps
+## Project structure
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+```
+src/
+├── app/                 # Expo Router screens (file-based routes)
+│   ├── index.tsx        # Splash → welcome
+│   ├── (auth)/          # Public / unauthenticated flow
+│   └── (app)/           # Authenticated app shell
+├── components/          # Reusable UI (auth, common, dashboard, form, prayer)
+├── constants/           # Design tokens (theme, fonts)
+├── features/            # Feature-specific helpers and legacy mock data
+├── hooks/
+├── layouts/             # PublicLayout, AuthenticatedLayout (route guards)
+├── lib/                 # Utilities (navigation, routes, color)
+├── mocks/               # Mock fixtures — import from here in new code
+│   └── fixtures/
+├── services/            # API layer (mock today, HTTP later)
+├── store/               # Zustand client state
+└── types/               # Shared TypeScript contracts (auth, branch, api)
+```
 
-## Learn more
+### Naming conventions
 
-To learn more about developing your project with Expo, look at the following resources:
+| Area | Convention |
+|------|------------|
+| Screens | `src/app/...` — Expo Router file names map to URLs |
+| UI components | `src/components/{domain}/` — PascalCase files |
+| Mock data | `src/mocks/` or `src/mocks/fixtures/` — not inline in screens |
+| Services | `src/services/{name}.service.ts` — UI never calls fetch directly |
+| Types | `src/types/` — shared contracts; feature-only types stay colocated |
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+## Routing
 
-## Join the community
+| Route | Layout | Purpose |
+|-------|--------|---------|
+| `/` | Root | Branded splash |
+| `/welcome` | Public | Landing |
+| `/login` | Public | Sign in (mock auth) |
+| `/signup` | Public | Create account → role select |
+| `/role-select` | Public | Pastor vs member onboarding path |
+| `/dashboard` | Authenticated | Redirects to role home |
+| `/pastor/...` | Authenticated | Pastor tabs and pushed screens |
+| `/member/...` | Authenticated | Member home (placeholder) |
 
-Join our community of developers creating universal apps.
+**Layouts:** [`src/layouts/public-layout.tsx`](src/layouts/public-layout.tsx) guards unauthenticated routes; [`src/layouts/authenticated-layout.tsx`](src/layouts/authenticated-layout.tsx) guards the app shell.
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+## Mock data & services
+
+UI code should call **services**, not hardcode API responses:
+
+```ts
+import { authService } from "@/services";
+import { prayerGroups } from "@/mocks";
+
+const session = await authService.login({ email, password });
+```
+
+| Service | Status | Location |
+|---------|--------|----------|
+| `authService` | Mock (in-memory session) | [`src/services/auth.service.ts`](src/services/auth.service.ts) |
+| `branchService` | Stub (throws until Sprint 2) | [`src/services/branch.service.ts`](src/services/branch.service.ts) |
+
+Legacy feature mocks live under `src/features/**/*.data.ts` and are re-exported from [`src/mocks/index.ts`](src/mocks/index.ts). New fixtures go in `src/mocks/fixtures/`.
+
+**MSW** is not wired yet; Sprint 1 may add it for realistic loading/error states.
+
+## Types & API contracts
+
+Shared shapes for client and future backend:
+
+- [`src/types/auth.ts`](src/types/auth.ts) — `User`, `Session`, `UserProfile`
+- [`src/types/branch.ts`](src/types/branch.ts) — `Organization`, `Branch`, `BranchMembership`, setup requests
+- [`src/types/api.ts`](src/types/api.ts) — `AuthService`, `BranchService` method signatures
+
+Import from `@/types` or `@/types/auth`.
+
+## Design system
+
+Tokens: [`src/constants/theme.ts`](src/constants/theme.ts), [`tailwind.config.js`](tailwind.config.js).
+
+Mockup reference: [`assets/mockups/pastorly-ui-screens.png`](assets/mockups/pastorly-ui-screens.png).
+
+## Sprint status
+
+| Sprint | Focus | Status |
+|--------|-------|--------|
+| **0** | Foundation (this repo structure) | Complete |
+| **1** | Auth & global profile | Next — session persistence, forgot password, membership routing |
+| **2** | Branch context | Planned — `BranchProvider`, MFM seed data |
+| **3+** | Switcher, discover, pastor wizard, admin | Planned |
+
+## Scripts
+
+```bash
+npm start          # Expo dev server
+npm run ios        # Expo + iOS
+npm run android    # Expo + Android
+npm run lint       # Expo lint
+```
+
+## Agent / contributor notes
+
+- Read Expo v56 docs before changing navigation or native APIs: https://docs.expo.dev/versions/v56.0.0/
+- See [`AGENTS.md`](AGENTS.md) for the same pointer.
+- Do not commit secrets (`.env`, credentials).

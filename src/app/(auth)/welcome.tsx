@@ -88,7 +88,7 @@ export default function WelcomeScreen() {
               <Pressable
                 accessibilityRole="button"
                 accessibilityLabel="I already have an account"
-                onPress={() => router.push("/(auth)/member/join")}
+                onPress={() => router.push("/(auth)/login")}
                 style={styles.buttonShell}
               >
                 {({ pressed }) => (
