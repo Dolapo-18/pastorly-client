@@ -12,6 +12,11 @@ export function comingSoon(title: string, screen?: number): Href {
 }
 
 export const routes = {
+  welcome: "/(auth)/welcome",
+  login: "/(auth)/login",
+  signup: "/(auth)/signup",
+  roleSelect: "/(auth)/role-select",
+  dashboard: "/(app)/dashboard",
   pastorHome: "/(app)/pastor/(tabs)/home",
   pastorCalendar: "/(app)/pastor/(tabs)/calendar",
   pastorGroups: "/(app)/pastor/(tabs)/groups",
