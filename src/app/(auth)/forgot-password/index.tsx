@@ -13,21 +13,24 @@ import { authService } from "@/services";
 export default function ForgotPasswordScreen() {
   const { colors } = useAppTheme();
   const [email, setEmail] = useState("");
-  const [sent, setSent] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async () => {
+  const handleSendOtp = async () => {
     setError(null);
-    if (!email.trim()) {
+    const trimmedEmail = email.trim();
+    if (!trimmedEmail) {
       setError("Enter the email for your account.");
       return;
     }
 
     setLoading(true);
     try {
-      await authService.requestPasswordReset({ email: email.trim() });
-      setSent(true);
+      await authService.sendPasswordOtp({ email: trimmedEmail });
+      router.push({
+        pathname: "/(auth)/forgot-password/reset",
+        params: { email: trimmedEmail },
+      });
     } catch {
       setError("Something went wrong. Try again.");
     } finally {
@@ -53,23 +56,20 @@ export default function ForgotPasswordScreen() {
             className="font-figtree text-[14px] leading-[20px]"
             style={{ color: colors.textMuted }}
           >
-            {sent
-              ? "If an account exists for that email, we sent reset instructions."
-              : "Enter your email and we'll send a reset link."}
+            Enter your email and we&apos;ll send a one-time code to reset your
+            password.
           </Text>
         </View>
 
-        {!sent ? (
-          <AuthField
-            label="Email"
-            placeholder="you@example.com"
-            value={email}
-            onChangeText={setEmail}
-            keyboardType="email-address"
-            autoCapitalize="none"
-            autoComplete="email"
-          />
-        ) : null}
+        <AuthField
+          label="Email"
+          placeholder="you@example.com"
+          value={email}
+          onChangeText={setEmail}
+          keyboardType="email-address"
+          autoCapitalize="none"
+          autoComplete="email"
+        />
 
         {error ? (
           <Text
@@ -83,18 +83,11 @@ export default function ForgotPasswordScreen() {
       </View>
 
       <View className="gap-4 pt-6">
-        {!sent ? (
-          <AuthPrimaryButton
-            label={loading ? "Sending…" : "Send reset link"}
-            disabled={loading}
-            onPress={() => void handleSubmit()}
-          />
-        ) : (
-          <AuthPrimaryButton
-            label="Back to sign in"
-            onPress={() => router.replace("/(auth)/login")}
-          />
-        )}
+        <AuthPrimaryButton
+          label={loading ? "Sending…" : "Send OTP"}
+          disabled={loading}
+          onPress={() => void handleSendOtp()}
+        />
       </View>
     </AuthScreen>
   );

@@ -50,7 +50,7 @@ src/
 | `/welcome` | Public | Landing |
 | `/login` | Public | Sign in (mock auth) |
 | `/signup` | Public | Create account → onboarding |
-| `/forgot-password` | Public | Password reset (mock) |
+| `/forgot-password` | Public | Request OTP → `/forgot-password/reset` (mock OTP: `123456`) |
 | `/role-select` | Public | Legacy — redirects to sign up |
 | `/onboarding` | Authenticated | Find church or set up branch |
 | `/account/profile` | Authenticated | Global profile edit |
@@ -88,7 +88,7 @@ Legacy feature mocks live under `src/features/**/*.data.ts` and are re-exported 
 | `pastor@mfm.org` | any | Seeded with MFM Ikeja + Abuja → pastor dashboard |
 | new signup | any | No branches → onboarding hub |
 
-Invite codes in dev: `GRACE-2024` (instant member), `MFM-IKEJA` (pending approval).
+Invite codes in dev: `MFM-ABUJA` (instant join), `MFM-IKEJA` / `GRACE-2024` (pending approval).
 
 ## Types & API contracts
 

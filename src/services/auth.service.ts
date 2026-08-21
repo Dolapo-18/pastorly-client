@@ -1,6 +1,7 @@
 import type {
-  ForgotPasswordPayload,
   LoginPayload,
+  ResetPasswordWithOtpPayload,
+  SendPasswordOtpPayload,
   Session,
   SignupPayload,
   UserProfile,
@@ -96,19 +97,80 @@ export const authService: AuthService = {
     };
   },
 
-  async requestPasswordReset({ email }: ForgotPasswordPayload) {
+  async sendPasswordOtp({ email }: SendPasswordOtpPayload) {
     await delay(400);
-    if (!email.trim()) {
+    const normalizedEmail = email.trim().toLowerCase();
+    if (!normalizedEmail) {
       throw new Error("Email is required");
     }
-    // Mock always succeeds — Sprint 1 UI only.
+
+    const otp = "123456";
+    const pending = await readPendingOtps();
+    pending[normalizedEmail] = {
+      otp,
+      expiresAt: new Date(Date.now() + 10 * 60_000).toISOString(),
+    };
+    await writePendingOtps(pending);
+  },
+
+  async resetPasswordWithOtp({
+    email,
+    otp,
+    password,
+  }: ResetPasswordWithOtpPayload) {
+    await delay(400);
+    const normalizedEmail = email.trim().toLowerCase();
+    if (!normalizedEmail || !otp.trim() || !password.trim()) {
+      throw new Error("All fields are required");
+    }
+
+    const pending = await readPendingOtps();
+    const entry = pending[normalizedEmail];
+    if (!entry) {
+      throw new Error("No code found for this email. Request a new one.");
+    }
+    if (new Date(entry.expiresAt).getTime() <= Date.now()) {
+      delete pending[normalizedEmail];
+      await writePendingOtps(pending);
+      throw new Error("Code expired. Request a new one.");
+    }
+    if (entry.otp !== otp.trim()) {
+      throw new Error("Invalid code. Check and try again.");
+    }
+
+    delete pending[normalizedEmail];
+    await writePendingOtps(pending);
   },
 };
 
 export const authServiceDev = {
   sessionKey: storageKeys.session,
   clearSession: () => writeSession(null),
+  mockOtp: "123456",
 };
+
+type PendingOtpEntry = {
+  otp: string;
+  expiresAt: string;
+};
+
+async function readPendingOtps(): Promise<Record<string, PendingOtpEntry>> {
+  const raw = await appStorage.getItem(storageKeys.passwordResetOtp);
+  if (!raw) return {};
+  try {
+    return JSON.parse(raw) as Record<string, PendingOtpEntry>;
+  } catch {
+    return {};
+  }
+}
+
+async function writePendingOtps(entries: Record<string, PendingOtpEntry>) {
+  if (Object.keys(entries).length === 0) {
+    await appStorage.removeItem(storageKeys.passwordResetOtp);
+    return;
+  }
+  await appStorage.setItem(storageKeys.passwordResetOtp, JSON.stringify(entries));
+}
 
 function delay(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));

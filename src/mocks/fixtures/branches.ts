@@ -40,6 +40,7 @@ export const MOCK_BRANCH_CATALOG: Branch[] = [
 export const INVITE_CODES: Record<string, string> = {
   "GRACE-2024": "branch_grace_family",
   "MFM-IKEJA": "branch_mfm_ikeja",
+  "MFM-ABUJA": "branch_mfm_abuja",
 };
 
 /** Demo account with existing branch memberships after sign-in. */

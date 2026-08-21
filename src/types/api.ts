@@ -1,4 +1,11 @@
-import type { LoginPayload, Session, SignupPayload, UserProfile, ForgotPasswordPayload } from "@/types/auth";
+import type {
+  LoginPayload,
+  ResetPasswordWithOtpPayload,
+  SendPasswordOtpPayload,
+  Session,
+  SignupPayload,
+  UserProfile,
+} from "@/types/auth";
 import type { Branch, BranchMembership, CreateBranchSetupPayload } from "@/types/branch";
 
 /** Service method signatures — UI calls these; mocks today, HTTP later. */
@@ -9,7 +16,8 @@ export type AuthService = {
   logout(): Promise<void>;
   getSession(): Promise<Session | null>;
   updateProfile(profile: Partial<UserProfile>): Promise<UserProfile>;
-  requestPasswordReset(payload: ForgotPasswordPayload): Promise<void>;
+  sendPasswordOtp(payload: SendPasswordOtpPayload): Promise<void>;
+  resetPasswordWithOtp(payload: ResetPasswordWithOtpPayload): Promise<void>;
 };
 
 export type MembershipService = {

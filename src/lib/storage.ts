@@ -6,4 +6,5 @@ export const appStorage = AsyncStorage;
 export const storageKeys = {
   session: "pastorly.session",
   memberships: "pastorly.memberships",
+  passwordResetOtp: "pastorly.passwordResetOtp",
 } as const;

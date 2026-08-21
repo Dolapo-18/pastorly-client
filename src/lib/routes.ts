@@ -22,6 +22,10 @@ export const routes = {
   onboardingSetup: "/(app)/onboarding/setup-branch",
   accountProfile: "/(app)/account/profile",
   forgotPassword: "/(auth)/forgot-password",
+  resetPassword: (email: string): Href => ({
+    pathname: "/(auth)/forgot-password/reset",
+    params: { email },
+  }),
   pastorHome: "/(app)/pastor/(tabs)/home",
   pastorCalendar: "/(app)/pastor/(tabs)/calendar",
   pastorGroups: "/(app)/pastor/(tabs)/groups",
